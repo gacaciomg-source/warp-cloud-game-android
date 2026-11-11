@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Cores da WARP (as mesmas do site). -->
+<resources>
+    <color name="warp_fundo">#07131F</color>
+    <color name="warp_fundo_2">#0A1A29</color>
+    <color name="warp_superficie">#0F2336</color>
+    <color name="warp_linha">#1E3A53</color>
+    <color name="warp_texto">#EAF3F8</color>
+    <color name="warp_texto_2">#ADC4D6</color>
+    <color name="warp_apagado">#6F8BA3</color>
+    <color name="warp_verde">#00C48E</color>
+    <color name="warp_verde_escuro">#04211A</color>
+    <color name="warp_erro">#F2545B</color>
+</resources>

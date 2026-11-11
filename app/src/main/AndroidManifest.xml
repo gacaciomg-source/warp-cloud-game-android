@@ -95,7 +95,17 @@
 
             <meta-data android:name="WindowManagerPreference:FreeformWindowSize" android:value="system-default" />
             <meta-data android:name="WindowManagerPreference:FreeformWindowOrientation" android:value="landscape" />
+        </activity>
 
+        <!-- WARP Cloud Game: o app abre aqui (conta da WARP) em vez da lista de PCs
+             do Moonlight, que continua acessível pelo menu como "modo avançado". -->
+        <activity
+            android:name=".warp.WarpEntrarActivity"
+            android:exported="true"
+            android:resizeableActivity="true"
+            android:theme="@style/WarpTema"
+            android:windowSoftInputMode="adjustResize"
+            android:configChanges="mcc|mnc|touchscreen|keyboard|keyboardHidden|navigation|screenLayout|fontScale|uiMode|orientation|screenSize|smallestScreenSize|layoutDirection">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -105,6 +115,18 @@
                 <category android:name="tv.ouya.intent.category.APP" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".warp.WarpJogosActivity"
+            android:exported="false"
+            android:resizeableActivity="true"
+            android:theme="@style/WarpTema"
+            android:configChanges="mcc|mnc|touchscreen|keyboard|keyboardHidden|navigation|screenLayout|fontScale|uiMode|orientation|screenSize|smallestScreenSize|layoutDirection" />
+        <activity
+            android:name=".warp.WarpSessaoActivity"
+            android:exported="false"
+            android:resizeableActivity="true"
+            android:theme="@style/WarpTema"
+            android:configChanges="mcc|mnc|touchscreen|keyboard|keyboardHidden|navigation|screenLayout|fontScale|uiMode|orientation|screenSize|smallestScreenSize|layoutDirection" />
         <!-- Small hack to support launcher shortcuts without relaunching over and over again when the back button is pressed -->
         <activity
             android:name=".ShortcutTrampoline"

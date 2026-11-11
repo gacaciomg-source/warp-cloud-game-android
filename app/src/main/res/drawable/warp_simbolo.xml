@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Símbolo da WARP (as duas barras), mesma geometria do site. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="34dp" android:height="32dp"
+    android:viewportWidth="34" android:viewportHeight="32">
+    <path android:fillColor="@color/warp_verde" android:fillType="evenOdd"
+        android:pathData="M11,3 L18,3 L11,29 L4,29 Z M25,3 L32,3 L25,29 L18,29 Z M12.2,8.2 a1.9,1.9 0 1,0 3.8,0 a1.9,1.9 0 1,0 -3.8,0 Z M7.954,18.4 L13.154,18.4 L12.604,20.5 L7.404,20.5 Z M7.012,21.9 L12.212,21.9 L11.662,24 L6.462,24 Z M6.069,25.4 L11.269,25.4 L10.719,27.5 L5.519,27.5 Z M26.2,8.2 a1.9,1.9 0 1,0 3.8,0 a1.9,1.9 0 1,0 -3.8,0 Z M21.954,18.4 L27.154,18.4 L26.604,20.5 L21.404,20.5 Z M21.012,21.9 L26.212,21.9 L25.662,24 L20.462,24 Z M20.069,25.4 L25.269,25.4 L24.719,27.5 L19.519,27.5 Z" />
+</vector>

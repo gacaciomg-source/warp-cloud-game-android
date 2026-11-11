@@ -11,7 +11,7 @@ android {
         minSdk 21
         targetSdk 36
 
-        versionName "12.2"
+        versionName "12.2-warp.1"
         versionCode = 315
 
         // Generate native debug symbols to allow Google Play to symbolicate our native crashes
@@ -37,7 +37,7 @@ android {
                 }
             }
 
-            applicationId "com.limelight.root"
+            applicationId "br.com.warpserver.cloudgame.root"
             dimension "root"
             buildConfigField "boolean", "ROOT_BUILD", "true"
         }
@@ -49,7 +49,7 @@ android {
                 }
             }
 
-            applicationId "com.limelight"
+            applicationId "br.com.warpserver.cloudgame"
             dimension "root"
             buildConfigField "boolean", "ROOT_BUILD", "false"
         }
@@ -81,11 +81,28 @@ android {
         }
     }
 
+    // WARP: assinatura fixa nas compilações do GitHub (a chave vem dos segredos do
+    // repositório). Sem ela, cada APK sairia com uma assinatura nova e o celular
+    // recusaria a atualização sem desinstalar antes.
+    signingConfigs {
+        warp {
+            if (System.getenv("WARP_KEYSTORE")) {
+                storeFile file(System.getenv("WARP_KEYSTORE"))
+                storePassword System.getenv("WARP_KEYSTORE_SENHA")
+                keyAlias "warp"
+                keyPassword System.getenv("WARP_KEYSTORE_SENHA")
+            }
+        }
+    }
+
     buildTypes {
         debug {
+            if (System.getenv("WARP_KEYSTORE")) {
+                signingConfig signingConfigs.warp
+            }
             applicationIdSuffix ".debug"
-            resValue "string", "app_label", "Moonlight (Debug)"
-            resValue "string", "app_label_root", "Moonlight (Root Debug)"
+            resValue "string", "app_label", "WARP Cloud Game (teste)"
+            resValue "string", "app_label_root", "WARP Cloud Game (teste root)"
         }
         release {
             // To whomever is releasing/using an APK in release mode with
@@ -118,9 +135,10 @@ android {
             // is to please change the applicationId before you publish.
             //
             // TL;DR: Leave the following line alone!
-            applicationIdSuffix ".unofficial"
-            resValue "string", "app_label", "Moonlight"
-            resValue "string", "app_label_root", "Moonlight (Root)"
+            // WARP Cloud Game: o applicationId já é próprio (br.com.warpserver.cloudgame),
+            // como o autor do Moonlight pede acima, então o sufixo ".unofficial" saiu.
+            resValue "string", "app_label", "WARP Cloud Game"
+            resValue "string", "app_label_root", "WARP Cloud Game (Root)"
 
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'

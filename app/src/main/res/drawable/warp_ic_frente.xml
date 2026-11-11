@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Ícone do app: símbolo da WARP centralizado na área segura do ícone adaptativo. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <group android:translateX="24.25" android:translateY="26"
+        android:scaleX="1.75" android:scaleY="1.75">
+        <path android:fillColor="#00C48E" android:fillType="evenOdd"
+            android:pathData="M11,3 L18,3 L11,29 L4,29 Z M25,3 L32,3 L25,29 L18,29 Z M12.2,8.2 a1.9,1.9 0 1,0 3.8,0 a1.9,1.9 0 1,0 -3.8,0 Z M7.954,18.4 L13.154,18.4 L12.604,20.5 L7.404,20.5 Z M7.012,21.9 L12.212,21.9 L11.662,24 L6.462,24 Z M6.069,25.4 L11.269,25.4 L10.719,27.5 L5.519,27.5 Z M26.2,8.2 a1.9,1.9 0 1,0 3.8,0 a1.9,1.9 0 1,0 -3.8,0 Z M21.954,18.4 L27.154,18.4 L26.604,20.5 L21.404,20.5 Z M21.012,21.9 L26.212,21.9 L25.662,24 L20.462,24 Z M20.069,25.4 L25.269,25.4 L24.719,27.5 L19.519,27.5 Z" />
+    </group>
+</vector>

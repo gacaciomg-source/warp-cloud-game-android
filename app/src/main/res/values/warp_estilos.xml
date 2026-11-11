@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Telas da WARP (entrar, jogos, sessão): fundo marinho, destaque verde. -->
+    <style name="WarpTema" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/warp_fundo</item>
+        <item name="android:colorPrimary">@color/warp_fundo</item>
+        <item name="android:colorPrimaryDark">@color/warp_fundo</item>
+        <item name="android:colorAccent">@color/warp_verde</item>
+        <item name="android:statusBarColor">@color/warp_fundo</item>
+        <item name="android:navigationBarColor">@color/warp_fundo</item>
+    </style>
+</resources>

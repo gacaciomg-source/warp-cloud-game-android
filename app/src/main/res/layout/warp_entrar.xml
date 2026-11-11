@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Entrar com a conta da WARP. -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/warp_fundo"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:paddingStart="28dp"
+        android:paddingTop="40dp"
+        android:paddingEnd="28dp"
+        android:paddingBottom="40dp">
+
+        <ImageView
+            android:layout_width="68dp"
+            android:layout_height="64dp"
+            android:contentDescription="WARP"
+            android:src="@drawable/warp_simbolo" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:text="WARP Cloud Game"
+            android:textColor="@color/warp_texto"
+            android:textSize="26sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:gravity="center"
+            android:text="Entre com a sua conta da WARP para jogar."
+            android:textColor="@color/warp_apagado"
+            android:textSize="14sp" />
+
+        <EditText
+            android:id="@+id/warp_email"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginTop="32dp"
+            android:autofillHints="emailAddress"
+            android:background="@drawable/warp_campo"
+            android:hint="E-mail"
+            android:importantForAutofill="yes"
+            android:inputType="textEmailAddress"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:textColor="@color/warp_texto"
+            android:textColorHint="@color/warp_apagado"
+            android:textSize="15sp" />
+
+        <EditText
+            android:id="@+id/warp_senha"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginTop="12dp"
+            android:autofillHints="password"
+            android:background="@drawable/warp_campo"
+            android:hint="Senha"
+            android:imeOptions="actionDone"
+            android:importantForAutofill="yes"
+            android:inputType="textPassword"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:textColor="@color/warp_texto"
+            android:textColorHint="@color/warp_apagado"
+            android:textSize="15sp" />
+
+        <TextView
+            android:id="@+id/warp_erro"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:textColor="@color/warp_erro"
+            android:textSize="13sp"
+            android:visibility="gone" />
+
+        <Button
+            android:id="@+id/warp_entrar"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginTop="20dp"
+            android:background="@drawable/warp_botao"
+            android:text="Entrar"
+            android:textAllCaps="false"
+            android:textColor="@color/warp_verde_escuro"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <ProgressBar
+            android:id="@+id/warp_carregando"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginTop="20dp"
+            android:indeterminateTint="@color/warp_verde"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/warp_criar_conta"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="28dp"
+            android:padding="8dp"
+            android:text="Não tem conta? Crie em warpserver.com.br"
+            android:textColor="@color/warp_verde"
+            android:textSize="13sp" />
+    </LinearLayout>
+</ScrollView>

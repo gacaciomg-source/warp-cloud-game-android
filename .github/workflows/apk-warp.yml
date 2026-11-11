@@ -1,0 +1,47 @@
+# Compila o APK de teste do WARP Cloud Game a cada envio na branch "warp".
+name: APK WARP Cloud Game
+
+on:
+  push:
+    branches: [warp]
+  workflow_dispatch:
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: android-actions/setup-android@v3
+
+      - name: NDK
+        run: sdkmanager --install "ndk;29.0.14206865" > /dev/null
+
+      - name: Chave de assinatura
+        env:
+          CHAVE: ${{ secrets.WARP_KEYSTORE_B64 }}
+        run: |
+          if [ -n "$CHAVE" ]; then
+            echo "$CHAVE" | base64 -d > "$RUNNER_TEMP/warp.jks"
+            echo "WARP_KEYSTORE=$RUNNER_TEMP/warp.jks" >> "$GITHUB_ENV"
+          fi
+
+      - name: Compila
+        env:
+          WARP_KEYSTORE_SENHA: ${{ secrets.WARP_KEYSTORE_SENHA }}
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-daemon assembleNonRootDebug
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: warp-cloud-game-teste
+          path: app/build/outputs/apk/nonRoot/debug/*.apk
+          if-no-files-found: error
