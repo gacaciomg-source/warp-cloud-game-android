@@ -19,10 +19,13 @@ jobs:
           distribution: temurin
           java-version: 21
 
-      - uses: android-actions/setup-android@v3
-
+      # O Ubuntu do GitHub já traz o Android SDK; falta só o NDK desta versão.
+      # (A action setup-android tentava instalar o pacote "tools", que não existe mais.)
       - name: NDK
-        run: sdkmanager --install "ndk;29.0.14206865" > /dev/null
+        run: |
+          SDKM=$(ls -d "$ANDROID_HOME"/cmdline-tools/*/bin/sdkmanager | sort -V | tail -1)
+          yes | "$SDKM" --licenses > /dev/null || true
+          "$SDKM" --install "ndk;29.0.14206865" > /dev/null
 
       - name: Chave de assinatura
         env:
