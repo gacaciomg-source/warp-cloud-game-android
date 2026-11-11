@@ -13,10 +13,12 @@ import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.limelight.LimeLog;
 import com.limelight.R;
 import com.limelight.binding.PlatformBinding;
 import com.limelight.computers.ComputerManagerService;
 import com.limelight.nvstream.http.ComputerDetails;
+import com.limelight.nvstream.http.HostHttpResponseException;
 import com.limelight.nvstream.http.NvApp;
 import com.limelight.nvstream.http.NvHTTP;
 import com.limelight.nvstream.http.PairingManager;
@@ -26,6 +28,10 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 /**
  * Do toque no jogo até o jogo aberto, sem IP nem código.
@@ -47,6 +53,10 @@ public class WarpSessaoActivity extends Activity {
     private static final int PEDIDO_JOGO = 4101;
     private static final long INTERVALO_FILA_MS = 3000;
     private static final long INTERVALO_SINAL_MS = 20000;
+    /** Tentativas de liberar o acesso, com a máquina destravada entre elas. */
+    private static final int TENTATIVAS_DE_PAREAR = 3;
+    /** Prazo de cada tentativa; normalmente fecha em 2 a 3 segundos. */
+    private static final long PRAZO_PAREAR_MS = 20000;
 
     private volatile ComputerManagerService.ComputerManagerBinder gerente;
     private volatile boolean ativa = true;
@@ -258,8 +268,7 @@ public class WarpSessaoActivity extends Activity {
 
             NvHTTP conn = abrirConexao(pc, g);
             if (conn.getPairState() != PairingManager.PairState.PAIRED) {
-                mostrar("Liberando seu acesso…", "A WARP faz isso por você, sem código.");
-                parear(api, conn, pc, g);
+                parearComTentativas(api, pc, g);
                 conn = abrirConexao(pc, g);
             }
             if (!ativa) return;
@@ -293,20 +302,56 @@ public class WarpSessaoActivity extends Activity {
     }
 
     /**
-     * Pareamento sem código na tela.
+     * Pareamento sem código, com prazo e novas tentativas.
      *
-     * O Moonlight começa a parear e fica esperando o código ser digitado no
-     * Sunshine. Em paralelo, mandamos o código para a WARP, que o entrega ao
-     * Sunshine. O Sunshine só aceita depois que o pedido do app chegou, então
-     * a entrega tenta de novo por alguns segundos.
+     * O Moonlight usa a mesma identificação em todos os aparelhos e o Sunshine
+     * aceita um pareamento por vez. Se uma tentativa anterior ficou pela metade
+     * (de qualquer aparelho, ou um toque antes da hora), o Sunshine recusa com
+     * 409 ou simplesmente não responde. Nesses casos a WARP destrava a máquina
+     * (reinicia o Sunshine pela ponte) e o app tenta de novo.
      */
-    private void parear(final WarpApi api, NvHTTP conn, ComputerDetails pc,
-                        ComputerManagerService.ComputerManagerBinder g) throws Exception {
+    private void parearComTentativas(WarpApi api, ComputerDetails pc,
+                                     ComputerManagerService.ComputerManagerBinder g) throws Exception {
+        for (int tentativa = 1; tentativa <= TENTATIVAS_DE_PAREAR; tentativa++) {
+            if (!ativa) throw new InterruptedException();
+            mostrar(tentativa == 1 ? "Liberando seu acesso…" : "Liberando seu acesso (tentativa " + tentativa + ")…",
+                    "A WARP faz isso por você, sem código.");
+
+            NvHTTP conn = abrirConexao(pc, g);
+            if (conn.getPairState() == PairingManager.PairState.PAIRED) return;
+            if (parearUmaVez(api, conn, pc, g)) return;
+
+            if (tentativa < TENTATIVAS_DE_PAREAR) {
+                mostrar("Destravando a máquina…", "Uma tentativa anterior ficou pela metade. Leva alguns segundos.");
+                api.destravar(sessaoId);
+                g.invalidateStateForComputer(pc.uuid);
+            }
+        }
+        throw new Falha("Não foi possível liberar o acesso à máquina. Tente de novo em instantes.");
+    }
+
+    /** Erros da WARP que não melhoram tentando de novo (configuração da máquina, por exemplo). */
+    private static boolean naoAdiantaRepetir(WarpApi.ErroApi e) {
+        return "SUNSHINE_SENHA".equals(e.codigo) || "SUNSHINE_SEM_SENHA".equals(e.codigo)
+                || "SESSAO_SEM_MAQUINA".equals(e.codigo) || "MAQUINA_EM_USO".equals(e.codigo);
+    }
+
+    /**
+     * Uma tentativa, com prazo.
+     *
+     * O Moonlight começa a parear e fica esperando o código no Sunshine; em
+     * paralelo, a WARP entrega o código (o Sunshine só aceita depois que o
+     * pedido do app chegou, então a entrega insiste por alguns segundos).
+     *
+     * @return true se pareou; false se vale destravar a máquina e tentar de novo.
+     */
+    private boolean parearUmaVez(final WarpApi api, final NvHTTP conn, ComputerDetails pc,
+                                 ComputerManagerService.ComputerManagerBinder g) throws Exception {
         final String pin = PairingManager.generatePinString();
-        final String[] erroEntrega = {null};
+        final WarpApi.ErroApi[] erroEntrega = {null};
 
         Thread entrega = new Thread(() -> {
-            for (int i = 0; i < 20; i++) {
+            for (int i = 0; i < 15; i++) {
                 try {
                     Thread.sleep(1200);
                     api.entregarCodigo(sessaoId, pin);
@@ -315,28 +360,47 @@ public class WarpSessaoActivity extends Activity {
                     return;
                 } catch (WarpApi.ErroApi e) {
                     if (!"PAREAMENTO_NAO_INICIADO".equals(e.codigo)) {
-                        erroEntrega[0] = e.getMessage();
+                        erroEntrega[0] = e;
                         return;
                     }
                 } catch (IOException e) {
                     // rede oscilou: tenta de novo
                 }
             }
-            erroEntrega[0] = "A máquina não confirmou o acesso a tempo.";
         });
         entrega.setDaemon(true);
         entrega.start();
 
-        PairingManager pm = conn.getPairingManager();
-        PairingManager.PairState estado = pm.pair(conn.getServerInfo(true), pin);
-        entrega.interrupt();
+        final PairingManager pm = conn.getPairingManager();
+        ExecutorService exec = Executors.newSingleThreadExecutor();
+        Future<PairingManager.PairState> futuro = exec.submit(() -> pm.pair(conn.getServerInfo(true), pin));
+        PairingManager.PairState estado = null;
+        try {
+            long limite = System.currentTimeMillis() + PRAZO_PAREAR_MS;
+            while (!futuro.isDone()) {
+                WarpApi.ErroApi e = erroEntrega[0];
+                if (e != null && naoAdiantaRepetir(e)) throw new Falha(e.getMessage());
+                if (System.currentTimeMillis() > limite) return false; // pendurou: destrava e tenta de novo
+                Thread.sleep(300);
+            }
+            estado = futuro.get();
+        } catch (ExecutionException e) {
+            // 409 "pareamento já existe" ou queda de rede no meio: destrava e tenta de novo.
+            Throwable causa = e.getCause();
+            if (causa instanceof HostHttpResponseException) {
+                LimeLog.info("Pareamento recusado pela máquina: " + causa.getMessage());
+            }
+            return false;
+        } finally {
+            futuro.cancel(true);
+            exec.shutdownNow();
+            entrega.interrupt();
+        }
 
         if (estado != PairingManager.PairState.PAIRED) {
-            if (erroEntrega[0] != null) throw new Falha(erroEntrega[0]);
-            if (estado == PairingManager.PairState.ALREADY_IN_PROGRESS) {
-                throw new Falha("A máquina está liberando outro acesso agora. Tente de novo em instantes.");
-            }
-            throw new Falha("A máquina recusou o acesso. Tente de novo.");
+            WarpApi.ErroApi e = erroEntrega[0];
+            if (e != null && naoAdiantaRepetir(e)) throw new Falha(e.getMessage());
+            return false;
         }
 
         // Guarda o certificado da máquina para as próximas conexões seguras.
@@ -344,5 +408,6 @@ public class WarpSessaoActivity extends Activity {
         ComputerDetails noGerente = g.getComputer(pc.uuid);
         if (noGerente != null) noGerente.serverCert = pc.serverCert;
         g.invalidateStateForComputer(pc.uuid);
+        return true;
     }
 }

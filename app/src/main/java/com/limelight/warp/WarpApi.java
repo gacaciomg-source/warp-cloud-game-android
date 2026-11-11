@@ -183,6 +183,11 @@ public final class WarpApi {
         }
     }
 
+    /** Pede à WARP para reiniciar o Sunshine da máquina (pareamento pendurado). Demora uns segundos. */
+    public void destravar(String id) throws IOException {
+        chamar("POST", "/cloud-game/sessions/" + id + "/destravar", null, true);
+    }
+
     public void sairDaSessao(String id) throws IOException {
         chamar("POST", "/cloud-game/sessions/" + id + "/end", null, true);
     }
