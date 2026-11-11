@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Escurece a arte do jogo à esquerda, onde fica o texto. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <gradient android:angle="0" android:startColor="#F207131F" android:centerColor="#B307131F" android:endColor="#0007131F" />
+</shape>

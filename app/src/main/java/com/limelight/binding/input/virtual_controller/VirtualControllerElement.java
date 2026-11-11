@@ -42,8 +42,9 @@ public abstract class VirtualControllerElement extends View {
 
     private final Paint paint = new Paint();
 
-    private int normalColor = 0xF0888888;
-    protected int pressedColor = 0xF00000FF;
+    // WARP: contorno branco e verde da marca ao apertar.
+    private int normalColor = 0xFFFFFFFF;
+    protected int pressedColor = 0xFF00C48E;
     private int configMoveColor = 0xF0FF0000;
     private int configResizeColor = 0xF0FF00FF;
     private int configSelectedColor = 0xF000FF00;
@@ -164,6 +165,15 @@ public abstract class VirtualControllerElement extends View {
             return configResizeColor;
         else
             return normalColor;
+    }
+
+    /**
+     * WARP: fundo escuro e translúcido por baixo do contorno, para o botão
+     * aparecer sobre qualquer cena do jogo. Acompanha a transparência escolhida.
+     */
+    protected int corDeFundo(boolean apertado) {
+        int alfa = (normalColor >>> 24) * 40 / 100;
+        return (alfa << 24) | (apertado ? 0x00C48E : 0x07131F);
     }
 
     protected int getDefaultStrokeWidth() {

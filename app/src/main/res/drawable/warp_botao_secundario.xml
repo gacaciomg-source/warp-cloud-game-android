@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<shape xmlns:android="http://schemas.android.com/apk/res/android">
-    <corners android:radius="10dp" />
-    <solid android:color="@color/warp_superficie" />
-    <stroke android:width="1dp" android:color="@color/warp_linha" />
-</shape>
+<!-- Botão secundário: vidro escuro. No foco, borda verde. -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_pressed="true">
+        <shape><corners android:radius="12dp" /><solid android:color="#33FFFFFF" /><stroke android:width="1dp" android:color="#55FFFFFF" /></shape>
+    </item>
+    <item android:state_focused="true">
+        <shape><corners android:radius="12dp" /><solid android:color="#2600C48E" /><stroke android:width="3dp" android:color="@color/warp_verde" /></shape>
+    </item>
+    <item>
+        <shape><corners android:radius="12dp" /><solid android:color="#1FFFFFFF" /><stroke android:width="1dp" android:color="#33FFFFFF" /></shape>
+    </item>
+</selector>

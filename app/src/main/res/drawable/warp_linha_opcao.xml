@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Linha clicável das configurações. -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_focused="true">
+        <shape><corners android:radius="14dp" /><solid android:color="#1A00C48E" /><stroke android:width="2dp" android:color="@color/warp_verde" /></shape>
+    </item>
+    <item android:state_pressed="true">
+        <shape><corners android:radius="14dp" /><solid android:color="#1FFFFFFF" /></shape>
+    </item>
+    <item>
+        <shape><corners android:radius="14dp" /><solid android:color="#00000000" /></shape>
+    </item>
+</selector>

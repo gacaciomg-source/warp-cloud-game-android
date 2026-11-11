@@ -1341,6 +1341,44 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
         }
     }
 
+    /**
+     * WARP: resume os dois últimos segundos para o painel e para a recomendação
+     * de qualidade. É barato (uma vez por segundo) e roda mesmo com as
+     * estatísticas escondidas, porque a recomendação depende delas.
+     */
+    private void enviarEstatisticasWarp() {
+        VideoStats ultimos = new VideoStats();
+        ultimos.add(lastWindowVideoStats);
+        ultimos.add(activeWindowVideoStats);
+        VideoStatsFps fps = ultimos.getFps();
+        float segundos = (SystemClock.uptimeMillis() - ultimos.measurementStartTimestamp) / 1000f;
+        long rtt = MoonBridge.getEstimatedRttInfo();
+
+        com.limelight.warp.WarpEstatisticas e = new com.limelight.warp.WarpEstatisticas();
+        e.largura = initialWidth;
+        e.altura = initialHeight;
+        e.fpsRecebido = fps.receivedFps;
+        e.fpsExibido = fps.renderedFps;
+        e.perdaPct = ultimos.totalFrames > 0 ? (float) ultimos.framesLost / ultimos.totalFrames * 100 : 0;
+        e.pingMs = (int) (rtt >> 32);
+        e.variacaoMs = (int) rtt;
+        e.mbps = segundos > 0 ? ultimos.bytesReceived * 8f / segundos / 1_000_000f : 0;
+        e.decodificacaoMs = ultimos.totalFramesReceived > 0 ? (float) ultimos.decoderTimeMs / ultimos.totalFramesReceived : 0;
+        e.maquinaMs = ultimos.framesWithHostProcessingLatency > 0
+                ? (float) ultimos.totalHostProcessingLatency / 10 / ultimos.framesWithHostProcessingLatency : 0;
+        if ((videoFormat & MoonBridge.VIDEO_FORMAT_MASK_AV1) != 0) {
+            e.codec = "AV1";
+        } else if ((videoFormat & MoonBridge.VIDEO_FORMAT_MASK_H265) != 0) {
+            e.codec = "HEVC";
+        } else {
+            e.codec = "H.264";
+        }
+        if ((videoFormat & MoonBridge.VIDEO_FORMAT_MASK_10BIT) != 0) {
+            e.codec += " HDR";
+        }
+        perfListener.onWarpStats(e);
+    }
+
     @SuppressWarnings("deprecation")
     @Override
     public int submitDecodeUnit(byte[] decodeUnitData, int decodeUnitLength, int decodeUnitType,
@@ -1369,9 +1407,11 @@ public class MediaCodecDecoderRenderer extends VideoDecoderRenderer implements C
         }
 
         lastFrameNumber = frameNumber;
+        activeWindowVideoStats.bytesReceived += decodeUnitLength;
 
         // Flip stats windows roughly every second
         if (SystemClock.uptimeMillis() >= activeWindowVideoStats.measurementStartTimestamp + 1000) {
+            enviarEstatisticasWarp();
             if (prefs.enablePerfOverlay) {
                 VideoStats lastTwo = new VideoStats();
                 lastTwo.add(lastWindowVideoStats);

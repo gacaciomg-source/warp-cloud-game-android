@@ -1,12 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Botão principal: verde da WARP. No foco (controle, TV) ganha borda branca. -->
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:state_enabled="false">
-        <shape><corners android:radius="10dp" /><solid android:color="#4D00C48E" /></shape>
+        <shape><corners android:radius="12dp" /><solid android:color="#4D00C48E" /></shape>
     </item>
     <item android:state_pressed="true">
-        <shape><corners android:radius="10dp" /><solid android:color="#1EE0A6" /></shape>
+        <shape><corners android:radius="12dp" /><solid android:color="#1EE0A6" /></shape>
+    </item>
+    <item android:state_focused="true">
+        <shape><corners android:radius="12dp" /><solid android:color="#1EE0A6" /><stroke android:width="3dp" android:color="#FFFFFFFF" /></shape>
     </item>
     <item>
-        <shape><corners android:radius="10dp" /><solid android:color="@color/warp_verde" /></shape>
+        <shape><corners android:radius="12dp" /><solid android:color="@color/warp_verde" /></shape>
     </item>
 </selector>

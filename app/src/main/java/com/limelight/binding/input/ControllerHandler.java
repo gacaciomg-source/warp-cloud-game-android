@@ -2552,8 +2552,10 @@ public class ControllerHandler implements InputManager.InputDeviceListener, UsbD
         sendControllerInputPacket(context);
 
         if (context.pendingExit && context.inputMap == 0) {
-            // All buttons from the quit combo are lifted. Finish the activity now.
-            activityContext.finish();
+            // WARP: a combinação de sair (Start+Back+LB+RB) abre o menu do jogo,
+            // que tem o "Encerrar sessão" com o tempo de salvar.
+            context.pendingExit = false;
+            gestures.abrirMenuWarp();
         }
 
         return true;

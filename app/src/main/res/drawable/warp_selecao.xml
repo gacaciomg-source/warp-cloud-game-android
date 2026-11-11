@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- Moldura do jogo selecionado no teclado ou no controle (desenhada pela grade, por cima do cartão). -->
-<shape xmlns:android="http://schemas.android.com/apk/res/android">
-    <corners android:radius="14dp" />
-    <solid android:color="#1A00C48E" />
-    <stroke android:width="3dp" android:color="@color/warp_verde" />
-</shape>

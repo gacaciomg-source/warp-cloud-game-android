@@ -87,11 +87,16 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Locale;
 
+import com.limelight.warp.WarpCamadaDoJogo;
+import com.limelight.warp.WarpEstatisticas;
+import com.limelight.warp.WarpPreferencias;
+
 
 public class Game extends Activity implements SurfaceHolder.Callback,
         OnGenericMotionListener, OnTouchListener, NvConnectionListener, EvdevListener,
         OnSystemUiVisibilityChangeListener, GameGestures, StreamView.InputCallbacks,
-        PerfOverlayListener, UsbDriverService.UsbDriverStateListener, View.OnKeyListener {
+        PerfOverlayListener, UsbDriverService.UsbDriverStateListener, View.OnKeyListener,
+        WarpCamadaDoJogo.Jogo {
     private int lastButtonState = 0;
 
     // Only 2 touches are supported
@@ -146,6 +151,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     private TextView notificationOverlayView;
     private int requestedNotificationOverlayVisibility = View.GONE;
     private TextView performanceOverlayView;
+    // WARP: tela de conexão, menu da partida, estatísticas e avisos por cima do jogo.
+    private WarpCamadaDoJogo warp;
 
     private MediaCodecDecoderRenderer decoderRenderer;
     private boolean reportedCrash;
@@ -211,9 +218,10 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         // Inflate the content
         setContentView(R.layout.activity_game);
 
-        // Start the spinner
-        spinner = SpinnerDialog.displayDialog(this, getResources().getString(R.string.conn_establishing_title),
-                getResources().getString(R.string.conn_establishing_msg), true);
+        // WARP: tela de conexão própria (com a arte do jogo) no lugar da caixinha
+        // de "Establishing connection".
+        warp = new WarpCamadaDoJogo(this, (FrameLayout) findViewById(android.R.id.content), this);
+        WarpCamadaDoJogo.jogoNaTela = true;
 
         // Read the stream preferences
         prefConfig = PreferenceConfiguration.readPreferences(this);
@@ -511,6 +519,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     this);
             virtualController.refreshLayout();
             virtualController.show();
+            warp.trazerParaFrente();
         }
 
         if (prefConfig.usbDriver) {
@@ -526,8 +535,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             }
 
             // If we can't find an AVC decoder, we can't proceed
-            Dialog.displayDialog(this, getResources().getString(R.string.conn_error_title),
-                    "This device or ROM doesn't support hardware accelerated H.264 playback.", true);
+            warp.falhou("Este aparelho não tem o decodificador de vídeo necessário para jogar na nuvem.");
             return;
         }
 
@@ -1078,6 +1086,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     @Override
     protected void onStop() {
         super.onStop();
+        WarpCamadaDoJogo.jogoNaTela = false;
 
         SpinnerDialog.closeDialogs(this);
         Dialog.closeDialogs();
@@ -2217,6 +2226,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 if (spinner != null) {
                     spinner.setMessage(getResources().getString(R.string.conn_starting) + " " + stage);
                 }
+                warp.etapa(stage);
             }
         });
     }
@@ -2250,10 +2260,8 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
     @Override
     public void stageFailed(final String stage, final int portFlags, final int errorCode) {
-        // Perform a connection test if the failure could be due to a blocked port
-        // This does network I/O, so don't do it on the main thread.
-        final int portTestResult = MoonBridge.testClientConnectivity(ServerHelper.CONNECTION_TEST_SERVER, 443, portFlags);
-
+        // WARP: sem o teste de portas no servidor do Moonlight. A tela da sessão
+        // mostra o erro em português e oferece tentar de novo.
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -2266,23 +2274,18 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     displayedFailureDialog = true;
                     LimeLog.severe(stage + " failed: " + errorCode);
 
-                    // If video initialization failed and the surface is still valid, display extra information for the user
+                    String mensagem;
                     if (stage.contains("video") && streamView.getHolder().getSurface().isValid()) {
-                        Toast.makeText(Game.this, getResources().getText(R.string.video_decoder_init_failed), Toast.LENGTH_LONG).show();
+                        mensagem = "O vídeo não conseguiu começar neste aparelho. Tente de novo; se continuar, "
+                                + "escolha a qualidade Econômica.";
+                    } else if (portFlags != 0) {
+                        mensagem = "A rede deste aparelho bloqueou a conexão com a máquina (etapa " + stage
+                                + "). Tente outra rede Wi-Fi ou os dados móveis.";
+                    } else {
+                        mensagem = "Não foi possível começar a transmissão (etapa " + stage + ", código "
+                                + errorCode + "). Tente de novo em instantes.";
                     }
-
-                    String dialogText = getResources().getString(R.string.conn_error_msg) + " " + stage +" (error "+errorCode+")";
-
-                    if (portFlags != 0) {
-                        dialogText += "\n\n" + getResources().getString(R.string.check_ports_msg) + "\n" +
-                                MoonBridge.stringifyPortFlags(portFlags, "\n");
-                    }
-
-                    if (portTestResult != MoonBridge.ML_TEST_RESULT_INCONCLUSIVE && portTestResult != 0)  {
-                        dialogText += "\n\n" + getResources().getString(R.string.nettest_text_blocked);
-                    }
-
-                    Dialog.displayDialog(Game.this, getResources().getString(R.string.conn_error_title), dialogText, true);
+                    warp.falhou(mensagem);
                 }
             }
         });
@@ -2290,10 +2293,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
 
     @Override
     public void connectionTerminated(final int errorCode) {
-        // Perform a connection test if the failure could be due to a blocked port
-        // This does network I/O, so don't do it on the main thread.
         final int portFlags = MoonBridge.getPortFlagsFromTerminationErrorCode(errorCode);
-        final int portTestResult = MoonBridge.testClientConnectivity(ServerHelper.CONNECTION_TEST_SERVER,443, portFlags);
 
         runOnUiThread(new Runnable() {
             @Override
@@ -2312,59 +2312,28 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                     LimeLog.severe("Connection terminated: " + errorCode);
                     stopConnection();
 
-                    // Display the error dialog if it was an unexpected termination.
-                    // Otherwise, just finish the activity immediately.
-                    if (errorCode != MoonBridge.ML_ERROR_GRACEFUL_TERMINATION) {
-                        String message;
-
-                        if (portTestResult != MoonBridge.ML_TEST_RESULT_INCONCLUSIVE && portTestResult != 0) {
-                            // If we got a blocked result, that supersedes any other error message
-                            message = getResources().getString(R.string.nettest_text_blocked);
+                    // WARP: fim normal (o jogo foi fechado na máquina) ou queda. A
+                    // tela da sessão decide: abrir de novo, reconectar ou encerrar.
+                    if (errorCode == MoonBridge.ML_ERROR_GRACEFUL_TERMINATION) {
+                        warpSair(WarpCamadaDoJogo.RESULTADO_JOGO_FECHOU, null);
+                    } else {
+                        String mensagem;
+                        switch (errorCode) {
+                            case MoonBridge.ML_ERROR_NO_VIDEO_TRAFFIC:
+                            case MoonBridge.ML_ERROR_NO_VIDEO_FRAME:
+                                mensagem = "A imagem parou de chegar. A internet pode ter caído ou ficado lenta demais.";
+                                break;
+                            case MoonBridge.ML_ERROR_UNEXPECTED_EARLY_TERMINATION:
+                            case MoonBridge.ML_ERROR_PROTECTED_CONTENT:
+                                mensagem = "A máquina interrompeu a transmissão logo no começo.";
+                                break;
+                            default:
+                                mensagem = portFlags != 0
+                                        ? "A rede deste aparelho bloqueou a conexão com a máquina."
+                                        : "A conexão com a máquina caiu.";
+                                break;
                         }
-                        else {
-                            switch (errorCode) {
-                                case MoonBridge.ML_ERROR_NO_VIDEO_TRAFFIC:
-                                    message = getResources().getString(R.string.no_video_received_error);
-                                    break;
-
-                                case MoonBridge.ML_ERROR_NO_VIDEO_FRAME:
-                                    message = getResources().getString(R.string.no_frame_received_error);
-                                    break;
-
-                                case MoonBridge.ML_ERROR_UNEXPECTED_EARLY_TERMINATION:
-                                case MoonBridge.ML_ERROR_PROTECTED_CONTENT:
-                                    message = getResources().getString(R.string.early_termination_error);
-                                    break;
-
-                                case MoonBridge.ML_ERROR_FRAME_CONVERSION:
-                                    message = getResources().getString(R.string.frame_conversion_error);
-                                    break;
-
-                                default:
-                                    String errorCodeString;
-                                    // We'll assume large errors are hex values
-                                    if (Math.abs(errorCode) > 1000) {
-                                        errorCodeString = Integer.toHexString(errorCode);
-                                    }
-                                    else {
-                                        errorCodeString = Integer.toString(errorCode);
-                                    }
-                                    message = getResources().getString(R.string.conn_terminated_msg) + "\n\n" +
-                                            getResources().getString(R.string.error_code_prefix) + " " + errorCodeString;
-                                    break;
-                            }
-                        }
-
-                        if (portFlags != 0) {
-                            message += "\n\n" + getResources().getString(R.string.check_ports_msg) + "\n" +
-                                    MoonBridge.stringifyPortFlags(portFlags, "\n");
-                        }
-
-                        Dialog.displayDialog(Game.this, getResources().getString(R.string.conn_terminated_title),
-                                message, true);
-                    }
-                    else {
-                        finish();
+                        warp.falhou(mensagem);
                     }
                 }
             }
@@ -2376,27 +2345,9 @@ public class Game extends Activity implements SurfaceHolder.Callback,
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                if (prefConfig.disableWarnings) {
-                    return;
-                }
-
-                if (connectionStatus == MoonBridge.CONN_STATUS_POOR) {
-                    if (prefConfig.bitrate > 5000) {
-                        notificationOverlayView.setText(getResources().getString(R.string.slow_connection_msg));
-                    }
-                    else {
-                        notificationOverlayView.setText(getResources().getString(R.string.poor_connection_msg));
-                    }
-
-                    requestedNotificationOverlayVisibility = View.VISIBLE;
-                }
-                else if (connectionStatus == MoonBridge.CONN_STATUS_OKAY) {
-                    requestedNotificationOverlayVisibility = View.GONE;
-                }
-
-                if (!isHidingOverlays) {
-                    notificationOverlayView.setVisibility(requestedNotificationOverlayVisibility);
-                }
+                // WARP: em vez do aviso em inglês no canto, o aviso da WARP com a
+                // sugestão de baixar a taxa de vídeo (e o botão para ajustar).
+                warp.conexaoRuim(connectionStatus == MoonBridge.CONN_STATUS_POOR);
             }
         });
     }
@@ -2414,6 +2365,7 @@ public class Game extends Activity implements SurfaceHolder.Callback,
                 connected = true;
                 connecting = false;
                 updatePipAutoEnter();
+                warp.conectou();
 
                 // Hide the mouse cursor now after a short delay.
                 // Doing it before dismissing the spinner seems to be undone
@@ -2661,6 +2613,11 @@ public class Game extends Activity implements SurfaceHolder.Callback,
     }
 
     @Override
+    public void onWarpStats(WarpEstatisticas estatisticas) {
+        if (warp != null) warp.estatisticas(estatisticas);
+    }
+
+    @Override
     public void onPerfUpdate(final String text) {
         runOnUiThread(new Runnable() {
             @Override
@@ -2696,5 +2653,103 @@ public class Game extends Activity implements SurfaceHolder.Callback,
             default:
                 return false;
         }
+    }
+
+    /* ------------------------------------------------------------ WARP */
+
+    /** Voltar abre (ou fecha) o menu da partida, em vez de largar o jogo. */
+    @Override
+    public void onBackPressed() {
+        if (warp != null) {
+            warp.alternarMenu();
+        } else {
+            super.onBackPressed();
+        }
+    }
+
+    /**
+     * Com o menu aberto, teclado e controle navegam no menu: nada vai para o
+     * jogo. Devolver false deixa o Android mover o foco pelas setas.
+     */
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        if (warp != null && warp.menuAberto()) {
+            return warp.tratarTecla(event) || getWindow().superDispatchKeyEvent(event);
+        }
+        return super.dispatchKeyEvent(event);
+    }
+
+    /** Analógico e direcional do controle viram setas no menu (o Android converte). */
+    @Override
+    public boolean dispatchGenericMotionEvent(MotionEvent event) {
+        if (warp != null && warp.menuAberto()) {
+            return getWindow().superDispatchGenericMotionEvent(event);
+        }
+        return super.dispatchGenericMotionEvent(event);
+    }
+
+    @Override
+    public void abrirMenuWarp() {
+        if (warp != null) runOnUiThread(warp::abrirMenu);
+    }
+
+    @Override
+    public void warpMostrarControleNaTela(boolean mostrar) {
+        prefConfig.onscreenController = mostrar;
+        if (mostrar) {
+            if (virtualController == null) {
+                virtualController = new VirtualController(controllerHandler,
+                        (FrameLayout) streamView.getParent(), this);
+            }
+            virtualController.refreshLayout();
+            virtualController.show();
+        } else if (virtualController != null) {
+            virtualController.removeElements();
+            virtualController = null;
+        }
+        warp.trazerParaFrente();
+    }
+
+    @Override
+    public void warpAtualizarControleNaTela() {
+        if (virtualController != null) {
+            virtualController.refreshLayout();
+            virtualController.show();
+            warp.trazerParaFrente();
+        }
+    }
+
+    @Override
+    public String warpAjustarBotoes() {
+        return virtualController != null ? virtualController.alternarModoDeAjuste() : null;
+    }
+
+    @Override
+    public void warpDefinirToque(boolean trackpad) {
+        prefConfig.touchscreenTrackpad = trackpad;
+        for (int i = 0; i < touchContextMap.length; i++) {
+            touchContextMap[i] = trackpad
+                    ? new RelativeTouchContext(conn, i, REFERENCE_HORIZ_RES, REFERENCE_VERT_RES, streamView, prefConfig)
+                    : new AbsoluteTouchContext(conn, i, streamView);
+        }
+    }
+
+    @Override
+    public void warpTeclado() {
+        toggleKeyboard();
+    }
+
+    @Override
+    public void warpSair(int resultado, String mensagem) {
+        Intent dados = new Intent();
+        if (mensagem != null) dados.putExtra(WarpCamadaDoJogo.EXTRA_MENSAGEM, mensagem);
+        setResult(resultado, dados);
+        finish();
+    }
+
+    @Override
+    public void warpMenuAberto(boolean aberto) {
+        // Mouse preso no jogo não clicaria no menu.
+        if (connected) setInputGrabState(!aberto);
     }
 }

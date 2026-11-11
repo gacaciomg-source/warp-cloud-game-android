@@ -149,6 +149,12 @@ public class DigitalButton extends VirtualControllerElement {
         rect.right = getWidth() - rect.left;
         rect.bottom = getHeight() - rect.top;
 
+        int corDoContorno = paint.getColor();
+        paint.setStyle(Paint.Style.FILL);
+        paint.setColor(corDeFundo(isPressed()));
+        canvas.drawOval(rect, paint);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setColor(corDoContorno);
         canvas.drawOval(rect, paint);
 
         if (icon != -1) {

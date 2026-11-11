@@ -222,6 +222,11 @@ public class AnalogStick extends VirtualControllerElement {
         // set transparent background
         canvas.drawColor(Color.TRANSPARENT);
 
+        // WARP: fundo translúcido da base do analógico.
+        paint.setStyle(Paint.Style.FILL);
+        paint.setColor(corDeFundo(false));
+        canvas.drawCircle(getWidth() / 2, getHeight() / 2, radius_complete, paint);
+
         paint.setStyle(Paint.Style.STROKE);
         paint.setStrokeWidth(getDefaultStrokeWidth());
 

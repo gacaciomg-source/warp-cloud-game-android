@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Linha de opção das configurações (qualidade): escolhida fica verde. -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_focused="true" android:state_selected="true">
+        <shape><corners android:radius="16dp" /><solid android:color="#2600C48E" /><stroke android:width="3dp" android:color="#FFFFFFFF" /></shape>
+    </item>
+    <item android:state_focused="true">
+        <shape><corners android:radius="16dp" /><solid android:color="#1AFFFFFF" /><stroke android:width="3dp" android:color="@color/warp_verde" /></shape>
+    </item>
+    <item android:state_selected="true">
+        <shape><corners android:radius="16dp" /><solid android:color="#1F00C48E" /><stroke android:width="1.5dp" android:color="@color/warp_verde" /></shape>
+    </item>
+    <item android:state_pressed="true">
+        <shape><corners android:radius="16dp" /><solid android:color="#26FFFFFF" /></shape>
+    </item>
+    <item>
+        <shape><corners android:radius="16dp" /><solid android:color="#B30F2336" /><stroke android:width="1dp" android:color="#331E3A53" /></shape>
+    </item>
+</selector>

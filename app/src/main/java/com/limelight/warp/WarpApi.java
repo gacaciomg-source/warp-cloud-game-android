@@ -8,7 +8,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -188,8 +190,78 @@ public final class WarpApi {
         chamar("POST", "/cloud-game/sessions/" + id + "/destravar", null, true);
     }
 
-    public void sairDaSessao(String id) throws IOException {
-        chamar("POST", "/cloud-game/sessions/" + id + "/end", null, true);
+    /** Sai do jogo. A resposta traz "salvandoAte": até quando a máquina segura o save. */
+    public JSONObject sairDaSessao(String id) throws IOException {
+        return chamar("POST", "/cloud-game/sessions/" + id + "/end", null, true);
+    }
+
+    /* ------------------------------------------------- teste de conexão */
+
+    private Request pedidoDeTeste(int bytes) {
+        return new Request.Builder()
+                .url(API + "/cloud-game/rede?bytes=" + bytes)
+                .header("Cache-Control", "no-cache")
+                .build();
+    }
+
+    /** Executa renovando o acesso se ele tiver expirado. Quem chama fecha a resposta. */
+    private Response executar(Request req) throws IOException {
+        Response r = http.newCall(req).execute();
+        if (r.code() == 401) {
+            r.close();
+            if (!renovar()) throw new ErroApi(401, "", "Sua sessão expirou. Entre de novo.");
+            r = http.newCall(req).execute();
+        }
+        if (!r.isSuccessful()) {
+            int status = r.code();
+            r.close();
+            throw new ErroApi(status, "", "Erro " + status + " no teste de conexão.");
+        }
+        return r;
+    }
+
+    /**
+     * Ping até a WARP: mediana de 5 idas e voltas, depois de uma primeira que
+     * só abre a conexão segura. O vídeo do jogo passa pelo mesmo servidor.
+     */
+    public int medirPing() throws IOException {
+        executar(pedidoDeTeste(0)).close();
+        long[] tempos = new long[5];
+        for (int i = 0; i < tempos.length; i++) {
+            long inicio = System.nanoTime();
+            try (Response r = executar(pedidoDeTeste(0))) {
+                r.body().bytes();
+            }
+            tempos[i] = System.nanoTime() - inicio;
+        }
+        Arrays.sort(tempos);
+        return (int) Math.max(1, tempos[tempos.length / 2] / 1_000_000);
+    }
+
+    /**
+     * Quanto a internet do aparelho recebe da WARP, em Mbps. O primeiro pedaço
+     * não conta (a conexão ainda está acelerando); para em 4 segundos.
+     */
+    public float medirMbps() throws IOException {
+        try (Response r = executar(pedidoDeTeste(8 * 1024 * 1024))) {
+            InputStream in = r.body().byteStream();
+            byte[] buf = new byte[64 * 1024];
+            long recebidos = 0, contados = 0, inicio = 0;
+            long limite = System.nanoTime() + 4_000_000_000L;
+            int n;
+            while ((n = in.read(buf)) > 0) {
+                recebidos += n;
+                if (inicio == 0) {
+                    if (recebidos >= 256 * 1024) inicio = System.nanoTime();
+                    continue;
+                }
+                contados += n;
+                if (System.nanoTime() > limite) break;
+            }
+            long fim = System.nanoTime();
+            if (inicio == 0 || fim <= inicio || contados == 0) return 0;
+            return contados * 8f / ((fim - inicio) / 1e9f) / 1e6f;
+        }
     }
 
     /* ---------------------------------------------------------- cookies */

@@ -31,7 +31,7 @@
     <string name="wol_no_mac">Não foi possível acordar o PC porque não tem um endereço MAC armazenado</string>
     <string name="wol_waking_msg">Pode levar alguns segundos para o seu PC acordar. Se isso não acontecer, verifique se ele está configurado corretamente para Wake-On-LAN.</string>
     <string name="error_404">GFE retornou um erro HTTP 404. Verifique se o seu PC está executando uma GPU compatível. O uso do software de área de trabalho remota também pode causar esse erro. Tente reiniciar sua máquina ou reinstalar o GFE.</string>
-    <string name="message_decoding_error">Moonlight crashou devido a uma incompatibilidade com o decodificador de vídeo deste dispositivo. Tente ajustar as configurações de transmissão se as falhas continuarem.</string>
+    <string name="message_decoding_error">O app fechou por uma incompatibilidade com o decodificador de vídeo deste aparelho. Se acontecer de novo, escolha uma qualidade menor.</string>
     <string name="message_decoding_reset">O decodificador de vídeo do seu dispositivo continua crashando nas configurações de transmissão selecionadas. Suas configurações de transmissão foram redefinidas para o padrão.</string>
     <string name="error_usb_prohibited">O acesso USB é proibido pelo administrador do seu dispositivo. Verifique suas configurações de Knox ou MDM.</string>
     <string name="unable_to_pin_shortcut">Seu launcher atual não permite a criação de atalhos fixados.</string>

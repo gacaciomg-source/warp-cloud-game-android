@@ -16,6 +16,8 @@ class VideoStats {
     int totalHostProcessingLatency;
     int framesWithHostProcessingLatency;
     long measurementStartTimestamp;
+    // WARP: bytes de vídeo recebidos, para mostrar a taxa real (Mbps).
+    long bytesReceived;
 
     void add(VideoStats other) {
         this.decoderTimeMs += other.decoderTimeMs;
@@ -34,6 +36,7 @@ class VideoStats {
         this.maxHostProcessingLatency = (char) Math.max(this.maxHostProcessingLatency, other.maxHostProcessingLatency);
         this.totalHostProcessingLatency += other.totalHostProcessingLatency;
         this.framesWithHostProcessingLatency += other.framesWithHostProcessingLatency;
+        this.bytesReceived += other.bytesReceived;
 
         if (this.measurementStartTimestamp == 0) {
             this.measurementStartTimestamp = other.measurementStartTimestamp;
@@ -55,6 +58,7 @@ class VideoStats {
         this.totalHostProcessingLatency = other.totalHostProcessingLatency;
         this.framesWithHostProcessingLatency = other.framesWithHostProcessingLatency;
         this.measurementStartTimestamp = other.measurementStartTimestamp;
+        this.bytesReceived = other.bytesReceived;
     }
 
     void clear() {
@@ -70,6 +74,7 @@ class VideoStats {
         this.totalHostProcessingLatency = 0;
         this.framesWithHostProcessingLatency = 0;
         this.measurementStartTimestamp = 0;
+        this.bytesReceived = 0;
     }
 
     VideoStatsFps getFps() {

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Botão redondo só com ícone (ajustes, conta, voltar). -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_pressed="true">
+        <shape android:shape="oval"><solid android:color="#40FFFFFF" /></shape>
+    </item>
+    <item android:state_focused="true">
+        <shape android:shape="oval"><solid android:color="#2600C48E" /><stroke android:width="3dp" android:color="@color/warp_verde" /></shape>
+    </item>
+    <item>
+        <shape android:shape="oval"><solid android:color="#26000000" /><stroke android:width="1dp" android:color="#26FFFFFF" /></shape>
+    </item>
+</selector>

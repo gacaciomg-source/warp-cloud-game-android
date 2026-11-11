@@ -43,6 +43,13 @@ public class DigitalPad extends VirtualControllerElement {
         paint.setTextAlign(Paint.Align.CENTER);
         paint.setStrokeWidth(getDefaultStrokeWidth());
 
+        // WARP: fundo translúcido da cruz.
+        paint.setStyle(Paint.Style.FILL);
+        paint.setColor(corDeFundo(false));
+        canvas.drawRect(DPAD_MARGIN, getPercent(getHeight(), 33), getWidth() - DPAD_MARGIN, getPercent(getHeight(), 66), paint);
+        canvas.drawRect(getPercent(getWidth(), 33), DPAD_MARGIN, getPercent(getWidth(), 66), getPercent(getHeight(), 33), paint);
+        canvas.drawRect(getPercent(getWidth(), 33), getPercent(getHeight(), 66), getPercent(getWidth(), 66), getHeight() - DPAD_MARGIN, paint);
+
         if (direction == DIGITAL_PAD_DIRECTION_NO_DIRECTION) {
             // draw no direction rect
             paint.setStyle(Paint.Style.STROKE);

@@ -157,17 +157,41 @@ public class VirtualController {
 
         DisplayMetrics screen = context.getResources().getDisplayMetrics();
 
-        int buttonSize = (int)(screen.heightPixels*0.06f);
-        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(buttonSize, buttonSize);
-        params.leftMargin = 15;
-        params.topMargin = 15;
-        frame_layout.addView(buttonConfigure, params);
+        // WARP: sem a engrenagem no canto. Mover e redimensionar os botões fica
+        // no menu da WARP (alternarModoDeAjuste).
 
         // Start with the default layout
         VirtualControllerConfigurationLoader.createDefaultLayout(this, context);
 
         // Apply user preferences onto the default layout
         VirtualControllerConfigurationLoader.loadFromPreferences(this, context);
+    }
+
+    /**
+     * WARP: passa para o próximo modo de ajuste (mover, redimensionar,
+     * concluir) e devolve o aviso para mostrar. Ao concluir, grava as posições.
+     */
+    public String alternarModoDeAjuste() {
+        String aviso;
+        if (currentMode == ControllerMode.Active) {
+            currentMode = ControllerMode.MoveButtons;
+            aviso = "Arraste os botões para onde quiser";
+        } else if (currentMode == ControllerMode.MoveButtons) {
+            currentMode = ControllerMode.ResizeButtons;
+            aviso = "Arraste um botão para mudar o tamanho dele";
+        } else {
+            currentMode = ControllerMode.Active;
+            VirtualControllerConfigurationLoader.saveProfile(VirtualController.this, context);
+            aviso = "Posição dos botões salva";
+        }
+        for (VirtualControllerElement element : elements) {
+            element.invalidate();
+        }
+        return aviso;
+    }
+
+    public boolean emAjuste() {
+        return currentMode != ControllerMode.Active;
     }
 
     public ControllerMode getControllerMode() {

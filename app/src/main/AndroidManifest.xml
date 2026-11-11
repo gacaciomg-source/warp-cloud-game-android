@@ -97,8 +97,8 @@
             <meta-data android:name="WindowManagerPreference:FreeformWindowOrientation" android:value="landscape" />
         </activity>
 
-        <!-- WARP Cloud Game: o app abre aqui (conta da WARP) em vez da lista de PCs
-             do Moonlight, que continua acessível pelo menu como "modo avançado". -->
+        <!-- WARP Cloud Game: o app abre aqui (conta da WARP). As telas antigas de
+             lista de PCs ficam no código, mas nenhum caminho do app leva a elas. -->
         <activity
             android:name=".warp.WarpEntrarActivity"
             android:exported="true"
@@ -117,6 +117,18 @@
         </activity>
         <activity
             android:name=".warp.WarpJogosActivity"
+            android:exported="false"
+            android:resizeableActivity="true"
+            android:theme="@style/WarpTema"
+            android:configChanges="mcc|mnc|touchscreen|keyboard|keyboardHidden|navigation|screenLayout|fontScale|uiMode|orientation|screenSize|smallestScreenSize|layoutDirection" />
+        <activity
+            android:name=".warp.WarpJogoActivity"
+            android:exported="false"
+            android:resizeableActivity="true"
+            android:theme="@style/WarpTema"
+            android:configChanges="mcc|mnc|touchscreen|keyboard|keyboardHidden|navigation|screenLayout|fontScale|uiMode|orientation|screenSize|smallestScreenSize|layoutDirection" />
+        <activity
+            android:name=".warp.WarpConfigActivity"
             android:exported="false"
             android:resizeableActivity="true"
             android:theme="@style/WarpTema"
