@@ -704,14 +704,23 @@ public class NvHTTP {
         }
     }
 
+    // WARP: nome com que o aparelho aparece na lista de pareamentos pendentes do
+    // Sunshine (GET /api/pin). O Moonlight manda "roth" em todos os aparelhos; o
+    // app da WARP troca pelo nome da sessão para a WARP achar o pedido certo.
+    private String pairingDeviceName = "roth";
+
+    public void setPairingDeviceName(String name) {
+        this.pairingDeviceName = name;
+    }
+
     String executePairingCommand(String additionalArguments, boolean enableReadTimeout) throws HostHttpResponseException, IOException {
         return openHttpConnectionToString(enableReadTimeout ? httpClientLongConnectTimeout : httpClientLongConnectNoReadTimeout,
-                baseUrlHttp, "pair", "devicename=roth&updateState=1&" + additionalArguments);
+                baseUrlHttp, "pair", "devicename=" + pairingDeviceName + "&updateState=1&" + additionalArguments);
     }
 
     String executePairingChallenge() throws HostHttpResponseException, IOException {
         return openHttpConnectionToString(httpClientLongConnectTimeout, getHttpsUrl(true),
-                "pair", "devicename=roth&updateState=1&phrase=pairchallenge");
+                "pair", "devicename=" + pairingDeviceName + "&updateState=1&phrase=pairchallenge");
     }
 
     public void unpair() throws IOException {

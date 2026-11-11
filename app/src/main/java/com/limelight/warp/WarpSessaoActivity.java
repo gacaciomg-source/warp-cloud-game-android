@@ -371,6 +371,9 @@ public class WarpSessaoActivity extends Activity {
         entrega.setDaemon(true);
         entrega.start();
 
+        // Nome que a WARP procura na lista de pareamentos pendentes do Sunshine.
+        conn.setPairingDeviceName("warp-" + sessaoId.substring(0, 8));
+
         final PairingManager pm = conn.getPairingManager();
         ExecutorService exec = Executors.newSingleThreadExecutor();
         Future<PairingManager.PairState> futuro = exec.submit(() -> pm.pair(conn.getServerInfo(true), pin));
