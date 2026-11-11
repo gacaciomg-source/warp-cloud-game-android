@@ -20,3 +20,5 @@ O vídeo, o áudio, os controles e a decodificação são os do Moonlight, sem m
 
 O GitHub compila a cada envio na branch `warp` (`.github/workflows/apk-warp.yml`)
 e deixa o APK em Actions → artefato `warp-cloud-game-teste`.
+
+O APK de teste é instalado por cima do anterior: a assinatura é sempre a mesma.
