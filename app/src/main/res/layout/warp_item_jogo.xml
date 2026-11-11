@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Um jogo no catálogo: capa, selo e nome. -->
+<!-- Um jogo no catálogo: capa, selo e nome.
+     Sem focusable aqui: dentro de uma GridView, item focável engole o toque e o
+     clique nunca chega (a grade cuida do foco, inclusive no controle da TV). -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@drawable/warp_cartao"
-    android:focusable="true"
     android:orientation="vertical"
     android:padding="6dp">
 
