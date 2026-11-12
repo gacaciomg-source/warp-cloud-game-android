@@ -176,16 +176,16 @@ public final class WarpPreferencias {
     }
 
     /**
-     * O que a conexão aguenta: 60% da velocidade medida (o resto é folga para
-     * oscilação), entre 4 e 40 Mbps. Ping alto pede menos dados por quadro.
+     * O que a conexão aguenta: 70% da velocidade medida (o resto é folga para
+     * oscilação), entre 4 e 40 Mbps. Ping alto fica em até 20 Mbps.
      * Sem teste ainda, fica na Equilibrada.
      */
     public static Perfil recomendado(Context ctx) {
         float mbps = mbpsMedido(ctx);
         int ping = pingMedido(ctx);
-        int kbps = mbps > 0 ? Math.round(mbps * 600) : 15000;
+        int kbps = mbps > 0 ? Math.round(mbps * 700) : 15000;
         kbps = Math.max(4000, Math.min(40000, kbps));
-        if (ping >= 80) kbps = Math.min(kbps, 12000);
+        if (ping >= 80) kbps = Math.min(kbps, 20000);
         int aprendido = prefs(ctx).getInt(TETO_APRENDIDO, 0);
         if (aprendido > 0) kbps = Math.min(kbps, aprendido);
         kbps = (kbps / 500) * 500;
