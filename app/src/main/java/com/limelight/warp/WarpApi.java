@@ -110,6 +110,16 @@ public final class WarpApi {
 
         if (status < 200 || status >= 300) {
             String mensagem = json.optString("message", "");
+            JSONObject campos = json.optJSONObject("fields");
+            if (campos != null && campos.length() > 0) {
+                StringBuilder juntos = new StringBuilder();
+                java.util.Iterator<String> chaves = campos.keys();
+                while (chaves.hasNext()) {
+                    if (juntos.length() > 0) juntos.append(' ');
+                    juntos.append(campos.optString(chaves.next()));
+                }
+                mensagem = juntos.toString();
+            }
             if (mensagem.isEmpty()) {
                 mensagem = status == 401 ? "Sua sessão expirou. Entre de novo." : "Erro " + status + " na WARP.";
             }
@@ -134,6 +144,16 @@ public final class WarpApi {
         try {
             JSONObject corpo = new JSONObject().put("email", email).put("password", senha);
             return chamar("POST", "/auth/login", corpo, false);
+        } catch (JSONException e) {
+            throw new IOException(e);
+        }
+    }
+
+    /** Cadastro pelo próprio app: a mesma rota do site, que já devolve a sessão. */
+    public JSONObject criarConta(String nome, String email, String senha) throws IOException {
+        try {
+            JSONObject corpo = new JSONObject().put("name", nome).put("email", email).put("password", senha);
+            return chamar("POST", "/auth/register", corpo, false);
         } catch (JSONException e) {
             throw new IOException(e);
         }

@@ -33,6 +33,7 @@
             android:textStyle="bold" />
 
         <TextView
+            android:id="@+id/warp_subtitulo"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
@@ -42,10 +43,27 @@
             android:textSize="14sp" />
 
         <EditText
-            android:id="@+id/warp_email"
+            android:id="@+id/warp_nome"
             android:layout_width="match_parent"
             android:layout_height="52dp"
             android:layout_marginTop="32dp"
+            android:autofillHints="name"
+            android:background="@drawable/warp_campo"
+            android:hint="Seu nome"
+            android:importantForAutofill="yes"
+            android:inputType="textPersonName|textCapWords"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:textColor="@color/warp_texto"
+            android:textColorHint="@color/warp_apagado"
+            android:textSize="15sp"
+            android:visibility="gone" />
+
+        <EditText
+            android:id="@+id/warp_email"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginTop="12dp"
             android:autofillHints="emailAddress"
             android:background="@drawable/warp_campo"
             android:hint="E-mail"
@@ -73,6 +91,31 @@
             android:textColor="@color/warp_texto"
             android:textColorHint="@color/warp_apagado"
             android:textSize="15sp" />
+
+        <LinearLayout
+            android:id="@+id/warp_termos_linha"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <CheckBox
+                android:id="@+id/warp_termos"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:buttonTint="@color/warp_verde" />
+
+            <TextView
+                android:id="@+id/warp_termos_texto"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textColor="@color/warp_apagado"
+                android:textColorLink="@color/warp_verde"
+                android:textSize="13sp" />
+        </LinearLayout>
 
         <TextView
             android:id="@+id/warp_erro"
@@ -109,7 +152,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="28dp"
             android:padding="8dp"
-            android:text="Não tem conta? Crie em warpserver.com.br"
+            android:text="Ainda não tem conta? Criar conta"
             android:textColor="@color/warp_verde"
             android:textSize="13sp" />
     </LinearLayout>
