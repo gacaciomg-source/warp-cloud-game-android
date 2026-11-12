@@ -175,6 +175,10 @@ public class WarpJogoActivity extends Activity {
         info.addView(titulo, WarpUi.margens(this, -2, -2, 0, 8, 0, 0));
 
         LinearLayout selos = WarpUi.linha(this);
+        if (jogo.optBoolean("soAdmin")) {
+            selos.addView(selo("Só administrador", WarpUi.AMARELO));
+            selos.addView(WarpUi.espaco(this, 8, 1));
+        }
         selos.addView(selo(jogavel ? "Disponível agora" : "Em breve", jogavel ? WarpUi.VERDE : WarpUi.AMARELO));
         selos.addView(WarpUi.espaco(this, 8, 1));
         selos.addView(selo("Progresso salvo na nuvem", WarpUi.TEXTO_2));

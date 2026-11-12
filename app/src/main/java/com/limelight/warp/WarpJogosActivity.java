@@ -208,15 +208,15 @@ public class WarpJogosActivity extends Activity {
             List<JSONObject> lista = new ArrayList<>();
             String falha = null;
             try {
+                // Primeiro a conta (renova o acesso vencido): é o login que faz
+                // o administrador receber também os recursos só dele.
+                JSONObject eu = WarpApi.get(this).quemSou();
+                if (eu != null) {
+                    nomeDaConta = eu.optString("name", "");
+                    emailDaConta = eu.optString("email", "");
+                }
                 JSONArray a = WarpApi.get(this).jogos();
                 for (int i = 0; i < a.length(); i++) lista.add(a.getJSONObject(i));
-                if (nomeDaConta == null) {
-                    JSONObject eu = WarpApi.get(this).quemSou();
-                    if (eu != null) {
-                        nomeDaConta = eu.optString("name", "");
-                        emailDaConta = eu.optString("email", "");
-                    }
-                }
             } catch (Exception e) {
                 falha = e instanceof WarpApi.ErroApi ? e.getMessage() : "Sem conexão com a WARP. Confira a internet e tente de novo.";
             }
@@ -257,7 +257,12 @@ public class WarpJogosActivity extends Activity {
         List<JSONObject> continuar = new ArrayList<>();
         List<JSONObject> agora = new ArrayList<>();
         List<JSONObject> breve = new ArrayList<>();
+        List<JSONObject> admin = new ArrayList<>();
         for (JSONObject j : jogos) {
+            if (j.optBoolean("soAdmin")) {
+                admin.add(j);
+                continue;
+            }
             if (!j.optBoolean("jogavel")) {
                 breve.add(j);
                 continue;
@@ -275,6 +280,7 @@ public class WarpJogosActivity extends Activity {
         View c2 = adicionarFileira("Jogue agora", agora, slugComFoco);
         if (primeiroCartao == null) primeiroCartao = c2;
         adicionarFileira("Em breve", breve, slugComFoco);
+        adicionarFileira("Administração (só você vê)", admin, slugComFoco);
 
         // O destaque continua no mesmo jogo depois de recarregar a lista.
         JSONObject escolhido = null;
@@ -284,7 +290,8 @@ public class WarpJogosActivity extends Activity {
             }
         }
         if (escolhido == null) {
-            escolhido = !continuar.isEmpty() ? continuar.get(0) : !agora.isEmpty() ? agora.get(0) : jogos.get(0);
+            escolhido = !continuar.isEmpty() ? continuar.get(0) : !agora.isEmpty() ? agora.get(0)
+                    : !breve.isEmpty() ? breve.get(0) : jogos.get(0);
         }
         mostrarDestaque(escolhido);
         ((View) destaqueTitulo.getParent()).setVisibility(View.VISIBLE);
@@ -366,10 +373,12 @@ public class WarpJogosActivity extends Activity {
         nome.setPadding(p, 0, p, p);
         cartao.addView(nome, pn);
 
-        if (!jogo.optBoolean("jogavel")) {
-            TextView selo = WarpUi.texto(this, "EM BREVE", 10, WarpUi.TEXTO, true);
+        if (jogo.optBoolean("soAdmin") || !jogo.optBoolean("jogavel")) {
+            boolean admin = jogo.optBoolean("soAdmin");
+            TextView selo = WarpUi.texto(this, admin ? "ADMIN" : "EM BREVE", 10,
+                    admin ? WarpUi.VERDE_ESCURO : WarpUi.TEXTO, true);
             selo.setLetterSpacing(0.1f);
-            selo.setBackground(WarpUi.fundo(0xCC07131F, 6, this));
+            selo.setBackground(WarpUi.fundo(admin ? WarpUi.VERDE : 0xCC07131F, 6, this));
             selo.setPadding(WarpUi.dp(this, 7), WarpUi.dp(this, 3), WarpUi.dp(this, 7), WarpUi.dp(this, 3));
             FrameLayout.LayoutParams pl = new FrameLayout.LayoutParams(-2, -2);
             pl.gravity = Gravity.TOP | Gravity.END;
@@ -395,7 +404,8 @@ public class WarpJogosActivity extends Activity {
         boolean jogavel = jogo.optBoolean("jogavel");
         boolean jaJogou = WarpPreferencias.jogadoEm(this, slug) > 0;
 
-        destaqueRotulo.setText(!jogavel ? "EM BREVE NA WARP" : jaJogou ? "CONTINUE DE ONDE PAROU" : "EM DESTAQUE");
+        destaqueRotulo.setText(jogo.optBoolean("soAdmin") ? "SÓ ADMINISTRADOR"
+                : !jogavel ? "EM BREVE NA WARP" : jaJogou ? "CONTINUE DE ONDE PAROU" : "EM DESTAQUE");
         destaqueTitulo.setText(jogo.optString("title"));
         destaqueMeta.setText(meta(jogo));
         String descricao = jogo.optString("description", "");
